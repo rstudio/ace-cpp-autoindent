@@ -1,0 +1,141 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <!script type="text/javascript" src="mini_require.js"></script>
+  <script type="text/javascript" src="ace.js"></script>
+  <script type="text/javascript" src="cpp.js"></script>
+  <style type="text/css">
+  pre {
+    margin-bottom: 30px;
+    padding: 3px;
+    border: 1px solid #999;
+  }
+  </style>
+</head>
+<body>
+
+<h2>Interactive Tester</h2>
+<div id="editor" style="width: 600px; height: 200px; border: 1px solid #999"></div>
+
+<h2 style="margin-top: 250px">Automated Tests</h2>
+<p>Passed: <span id="passed"></span>, Failed: <span id="failed"></span></p>
+<ol id="testcontainer" style="display: none;">
+<li><pre data-expected="2">
+if (1 == 2) {
+</pre></li>
+<li><pre data-expected="0">
+if (1 == 2) { return 1 }
+</pre></li>
+<li><pre data-expected="2">
+if (1 == 2)
+</pre></li>
+<li><pre data-expected="2">
+public: 
+</pre></li>
+<li><pre data-expected="2">
+case:
+</pre></li>
+<li><pre data-expected="0">
+namespace r {
+</pre></li>
+<li><pre data-expected="2">
+int z = 4;
+int x = 1 +
+</pre></li>
+<li><pre data-expected="4">
+    int q = 4;
+</pre></li>
+<li><pre data-expected="4">
+  void myFunction() {
+</pre></li>
+<li><pre data-expected="4">
+  void myFunction() { // This function will be amazing
+</pre></li>
+</ol>
+
+<script type="text/javascript">
+var Document = require('ace/document').Document;
+var CppMode = require('mode/cpp').Mode;
+
+function doIndentTest(el, state) {
+  var doc = new Document('');
+  var mode = new CppMode(false, doc);
+
+  doc.insert({row:0, column:0}, (el.innerText || el.textContent).trimRight());
+
+  var indent = mode.getNextLineIndent("start", 
+                                      doc.getLine(doc.getLength() - 1),  
+                                      "  ");
+  el.appendChild(document.createTextNode(indent + "|"));
+  var attrName = "data-expected"; 
+  if (state.length > 0 && 
+      el.getAttribute(attrName + "-" + state)) 
+  {
+     attrName += ("-" + state);
+  }
+  var expected = el.getAttribute(attrName);
+  if (expected == indent.length + "")
+  {
+    el.style.backgroundColor = '#BFB';
+    return true;
+  }
+  else
+  {
+    el.style.backgroundColor = 'pink';
+    return false;
+  }
+}
+
+var test = document.getElementById("runme");
+var container = document.getElementById("testcontainer");
+var passed = 0, failed = 0;
+var states = [ "" ];
+for (var i = 0; i < states.length; i++) 
+{
+   // Clone the tests for the new state
+   var testnode = container.cloneNode(true);
+   var header = document.createElement("h2");
+   header.innerText = "Test " + i + (
+      states[i].length > 0 ? 
+         ": " + states[i] : 
+         "");
+   container.parentNode.appendChild(header);
+   container.parentNode.appendChild(testnode);
+   testnode.style.display = "block";
+   pres = testnode.getElementsByTagName("pre");
+   for (var j = 0; j < pres.length; j++)
+   {
+     if (!test)
+     {
+       if (doIndentTest(pres[j], states[i]))
+         passed++;
+       else
+         failed++;
+     }
+     else
+     {
+       if (pres[j] != test)
+         pres[j].style.display = 'none';
+     }
+   }
+}
+if (test)
+{
+  if (doIndentTest(test))
+    passed++;
+  else
+    failed++;
+}
+
+document.getElementById('passed').innerText = passed;
+document.getElementById('failed').innerText = failed;
+
+var editor = ace.edit('editor');
+editor.renderer.setHScrollBarAlwaysVisible(false);
+editor.setHighlightActiveLine(false);
+var CppMode = require('mode/cpp').Mode;
+editor.getSession().setMode(new CppMode(false, editor.getSession().getDocument()));
+//editor.getSession().setUseSoftTabs(false);
+</script>
+</body>
+</html>
